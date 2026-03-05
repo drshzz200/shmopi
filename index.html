@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShMo Pharma Intelligence</title>
+<style>
+/* ── Reset & base ───────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f1f4f9;--surface:#fff;--surface-alt:#f7f9fc;
+  --primary:#1a3c6e;--primary-light:#e8eef7;
+  --accent:#2e7d32;--accent-light:#e8f5e9;--accent-text:#1b5e20;
+  --warn:#e65100;--warn-light:#fff3e0;
+  --text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;
+  --radius:10px;--radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.07);
+  --transition:all .2s ease;
+}
+html{font-size:15px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.6;
+  min-height:100vh;
+}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.app-header{
+  background:linear-gradient(135deg,var(--primary),#2b5ea7);
+  color:#fff;padding:0 2rem;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,.12);
+}
+.header-inner{
+  max-width:1120px;margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;height:60px;gap:1rem;
+}
+.header-inner h1{font-size:1.15rem;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+.header-inner .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;font-weight:400}
+
+.container{max-width:1120px;margin:0 auto;padding:1.5rem 2rem 3rem}
+
+/* ── Search bar ─────────────────────────────────────────────── */
+.search-panel{
+  background:var(--surface);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:1.25rem 1.5rem;
+  display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;
+  margin-bottom:1.5rem;
+}
+.search-panel input{
+  flex:1;min-width:220px;padding:.55rem .85rem;
+  border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  font-size:.9rem;color:var(--text);outline:none;transition:var(--transition);
+}
+.search-panel input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+.search-panel input::placeholder{color:var(--text-secondary)}
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.55rem 1.1rem;border-radius:var(--radius-sm);
+  font-size:.85rem;font-weight:600;cursor:pointer;
+  border:none;transition:var(--transition);white-space:nowrap;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#244d85}
+.btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--border)}
+.btn-outline:hover{background:var(--primary-light)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Stats strip ────────────────────────────────────────────── */
+.stats-strip{
+  display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;
+}
+.stat-card{
+  flex:1;min-width:140px;background:var(--surface);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:1rem 1.25rem;text-align:center;
+}
+.stat-card .value{font-size:1.7rem;font-weight:700;color:var(--primary);line-height:1.2}
+.stat-card .label{font-size:.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.2rem}
+
+/* ── Pipeline steps ─────────────────────────────────────────── */
+.pipeline{
+  display:flex;gap:0;margin-bottom:1.5rem;
+  background:var(--surface);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.pipeline .step{
+  flex:1;padding:.65rem .5rem;text-align:center;
+  font-size:.75rem;font-weight:600;color:var(--text-secondary);
+  border-right:1px solid var(--border);position:relative;
+  transition:var(--transition);
+}
+.pipeline .step:last-child{border-right:none}
+.pipeline .step.active{color:var(--primary);background:var(--primary-light)}
+.pipeline .step.done{color:#fff;background:var(--accent)}
+.pipeline .step .icon{display:block;font-size:1rem;margin-bottom:.15rem}
+
+/* ── Cluster sections ───────────────────────────────────────── */
+.cluster-section{margin-bottom:1.75rem}
+.cluster-header{
+  display:flex;align-items:center;gap:.6rem;
+  margin-bottom:.75rem;padding-left:.15rem;
+}
+.cluster-badge{
+  display:inline-block;font-size:.7rem;font-weight:700;
+  padding:.2rem .6rem;border-radius:4px;letter-spacing:.4px;
+  text-transform:uppercase;
+}
+.cluster-badge.topic{background:var(--accent-light);color:var(--accent-text)}
+.cluster-badge.noise{background:var(--warn-light);color:var(--warn)}
+.cluster-count{font-size:.8rem;color:var(--text-secondary)}
+
+/* ── Article cards ──────────────────────────────────────────── */
+.article-card{
+  background:var(--surface);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  margin-bottom:.75rem;overflow:hidden;transition:var(--transition);
+}
+.article-card:hover{box-shadow:var(--shadow-md);border-color:#c7d2e0}
+
+.card-main{padding:1.1rem 1.25rem;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
+.card-main .title{
+  font-size:.95rem;font-weight:600;color:var(--primary);
+  line-height:1.35;text-decoration:none;
+}
+.card-main .title:hover{text-decoration:underline}
+.card-main .meta{font-size:.75rem;color:var(--text-secondary);margin-top:.3rem}
+.card-main .chevron{
+  font-size:.85rem;color:var(--text-secondary);
+  transition:transform .2s;flex-shrink:0;margin-top:.2rem;
+}
+.article-card.open .chevron{transform:rotate(180deg)}
+
+.card-detail{
+  display:none;padding:0 1.25rem 1.1rem;
+  border-top:1px solid var(--border);
+}
+.article-card.open .card-detail{display:block;padding-top:1rem}
+
+/* Intel tags */
+.intel-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.75rem}
+.intel-tag{
+  display:inline-flex;align-items:center;gap:.25rem;
+  background:var(--accent-light);color:var(--accent-text);
+  font-size:.72rem;padding:.2rem .55rem;border-radius:3px;
+}
+.intel-tag strong{font-weight:700}
+
+.exec-summary{
+  font-size:.85rem;line-height:1.55;color:var(--text);
+  font-style:italic;margin-bottom:.75rem;
+  padding:.75rem 1rem;background:var(--surface-alt);
+  border-left:3px solid var(--primary);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.bullet-list{
+  list-style:none;padding:0;margin:0;
+}
+.bullet-list li{
+  font-size:.83rem;line-height:1.5;color:var(--text);
+  padding:.3rem 0 .3rem 1.2rem;position:relative;
+}
+.bullet-list li::before{
+  content:'';position:absolute;left:0;top:.65rem;
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+}
+
+.read-link{
+  display:inline-flex;align-items:center;gap:.3rem;
+  font-size:.78rem;font-weight:600;color:var(--primary);
+  text-decoration:none;margin-top:.5rem;
+}
+.read-link:hover{text-decoration:underline}
+
+/* ── Empty / loading state ──────────────────────────────────── */
+.state-message{
+  text-align:center;padding:3rem 1rem;color:var(--text-secondary);
+}
+.state-message .icon{font-size:2.5rem;margin-bottom:.75rem;display:block}
+.state-message h3{font-size:1rem;color:var(--text);margin-bottom:.35rem}
+.state-message p{font-size:.85rem}
+
+.spinner{
+  display:inline-block;width:20px;height:20px;
+  border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .6s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.app-footer{
+  text-align:center;padding:1.5rem;font-size:.75rem;color:var(--text-secondary);
+}
+
+/* ── Pipeline Impact Section ─────────────────────────────────── */
+.impact-section{
+  margin-top:2rem;padding-top:1.5rem;
+  border-top:2px solid var(--border);
+}
+.impact-card{
+  background:var(--surface);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  padding:1.25rem 1.5rem;margin-bottom:1rem;
+}
+.impact-card h4{
+  font-size:.95rem;color:var(--primary);margin:0 0 .75rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.impact-badge{
+  font-size:.7rem;padding:.2rem .5rem;border-radius:4px;
+  font-weight:600;text-transform:uppercase;
+}
+.impact-badge.high{background:#ffebee;color:#c62828}
+.impact-badge.medium{background:#fff3e0;color:#e65100}
+.impact-badge.low{background:#e8f5e9;color:#2e7d32}
+.impact-list{list-style:none;padding:0;margin:0}
+.impact-list li{
+  padding:.5rem 0;border-bottom:1px solid var(--border);
+  font-size:.85rem;display:flex;align-items:flex-start;gap:.5rem;
+}
+.impact-list li:last-child{border-bottom:none}
+.rec-actions{
+  margin-top:.75rem;padding-left:1.25rem;
+}
+.rec-actions li{font-size:.8rem;color:var(--text-secondary);margin:.25rem 0}
+
+/* ── News Section ────────────────────────────────────────────── */
+.news-section{
+  margin-top:2rem;padding-top:1.5rem;
+  border-top:2px solid var(--border);
+}
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;flex-wrap:wrap;gap:.75rem;
+}
+.section-header h2{
+  font-size:1.15rem;font-weight:700;color:var(--primary);
+  display:flex;align-items:center;gap:.5rem;
+}
+.section-subtitle{
+  font-size:.8rem;font-weight:400;color:var(--text-secondary);
+}
+.btn-sm{padding:.4rem .8rem;font-size:.78rem}
+.news-sources{
+  display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;
+}
+.source-badge{
+  font-size:.7rem;padding:.25rem .6rem;border-radius:12px;
+  font-weight:500;
+}
+.source-badge.en{background:#e3f2fd;color:#1565c0}
+.source-badge.kr{background:#fce4ec;color:#c2185b}
+
+.news-filter-note{
+  font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;
+}
+.news-summary-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:1rem;margin-bottom:1rem;
+}
+.news-summary-box h4{margin:0 0 .5rem;font-size:.9rem;}
+.news-summary-text{font-size:.8rem;white-space:pre-wrap;margin:0;color:var(--text);}
+.news-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:1rem;
+}
+.news-card{
+  background:var(--surface);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  padding:1rem 1.25rem;transition:var(--transition);
+}
+.news-card:hover{box-shadow:var(--shadow-md);border-color:#c7d2e0}
+.news-card .news-source{
+  font-size:.7rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.3px;margin-bottom:.4rem;
+}
+.news-card .news-source.en{color:#1565c0}
+.news-card .news-source.kr{color:#c2185b}
+.news-card .news-title{
+  font-size:.9rem;font-weight:600;color:var(--primary);
+  line-height:1.4;margin-bottom:.4rem;
+}
+.news-card .news-title a{color:inherit;text-decoration:none}
+.news-card .news-title a:hover{text-decoration:underline}
+.news-card .news-date{
+  font-size:.72rem;color:var(--text-secondary);margin-bottom:.5rem;
+}
+.news-card .news-snippet{
+  font-size:.8rem;color:var(--text);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media(max-width:640px){
+  .container{padding:1rem}
+  .search-panel{flex-direction:column}
+  .search-panel input{min-width:100%}
+  .pipeline .step{font-size:.65rem;padding:.5rem .25rem}
+  .stats-strip{gap:.5rem}
+  .stat-card{min-width:0;padding:.75rem}
+  .stat-card .value{font-size:1.3rem}
+  .news-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="header-inner">
+    <h1>ShMo Pharma Intelligence<span class="subtitle">Competitive Monitoring Dashboard</span></h1>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────── -->
+<div class="container">
+
+  <!-- Search -->
+  <div class="search-panel">
+    <input id="kw-input" type="text"
+           placeholder="Drug or disease name (e.g. semaglutide, chronic kidney disease, tirzepatide)">
+    <button class="btn btn-primary" id="btn-search" onclick="runSearch()">
+      <span id="search-label">Search</span>
+    </button>
+    <button class="btn btn-outline" onclick="loadDemo()">Load Demo</button>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="pipeline" id="pipeline">
+    <div class="step" data-step="ctgov"><span class="icon">1</span>ClinicalTrials.gov</div>
+    <div class="step" data-step="fda"><span class="icon">2</span>FDA Label</div>
+    <div class="step" data-step="ema"><span class="icon">3</span>EMA</div>
+    <div class="step" data-step="sort"><span class="icon">4</span>Sort &amp; Select Top 15</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip" id="stats" style="display:none">
+    <div class="stat-card"><div class="value" id="st-articles">0</div><div class="label">Results</div></div>
+    <div class="stat-card"><div class="value" id="st-clusters">0</div><div class="label">Sources</div></div>
+    <div class="stat-card"><div class="value" id="st-drugs">0</div><div class="label">Clinical Trials</div></div>
+    <div class="stat-card"><div class="value" id="st-companies">0</div><div class="label">FDA Labels</div></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="state-message" id="empty-state">
+      <span class="icon">&#128269;</span>
+      <h3>No results yet</h3>
+      <p>Enter a drug or disease name and click <strong>Search</strong> to query ClinicalTrials.gov, FDA, and EMA.<br>Or click <strong>Load Demo</strong> to see sample data.</p>
+    </div>
+  </div>
+
+  <!-- Pipeline Impact Analysis Section -->
+  <div class="impact-section" id="impact-section">
+    <div class="section-header">
+      <h2>📊 Pipeline Impact Analysis <span class="section-subtitle">How search results affect Boehringer Ingelheim clinical pipeline</span></h2>
+      <button class="btn btn-primary btn-sm" id="btn-analyze" onclick="runPipelineImpact()">
+        <span id="analyze-label">Analyze Impact</span>
+      </button>
+    </div>
+    <div id="impact-container">
+      <div class="state-message">
+        <span class="icon">📋</span>
+        <h3>Ready to analyze</h3>
+        <p>Run a search or load demo data, then click <strong>Analyze Impact</strong> to see how results affect the clinical pipeline.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Biohealth News Section -->
+  <div class="news-section" id="biohealth-section">
+    <div class="section-header">
+      <h2>📰 Biohealth News <span class="section-subtitle">Latest from global pharma sources (filtered by search term when available)</span></h2>
+      <button class="btn btn-outline btn-sm" onclick="loadBiohealthNews()">
+        <span id="news-btn-label">Refresh</span>
+      </button>
+    </div>
+    <div class="news-sources">
+      <span class="source-badge en">Biopharma Dive</span>
+      <span class="source-badge en">Fierce Pharma</span>
+      <span class="source-badge en">Endpoints News</span>
+      <span class="source-badge en">STAT News</span>
+      <span class="source-badge en">BioWorld</span>
+      <span class="source-badge kr">이데일리</span>
+      <span class="source-badge kr">이투데이</span>
+      <span class="source-badge kr">데일리팜</span>
+      <span class="source-badge kr">메디파나</span>
+      <span class="source-badge kr">약업신문</span>
+    </div>
+    <div id="news-container">
+      <div class="state-message">
+        <span class="icon">📰</span>
+        <h3>Loading news...</h3>
+        <p>Fetching latest biohealth articles from 10 sources</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="app-footer">ShMo Competitor Agent &middot; Pharma Competitive Intelligence Platform</footer>
+
+<script>
+/* ── State ──────────────────────────────────────────────────── */
+let currentData = null;
+let lastSearchKeyword = '';
+let currentNewsArticles = [];
+
+/* ── Pipeline animation ─────────────────────────────────────── */
+const STEPS = ['ctgov','fda','ema','sort'];
+
+function setPipeline(activeIdx) {
+  document.querySelectorAll('.pipeline .step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i < activeIdx) el.classList.add('done');
+    else if (i === activeIdx) el.classList.add('active');
+  });
+}
+function clearPipeline() {
+  document.querySelectorAll('.pipeline .step').forEach(el => {
+    el.classList.remove('active','done');
+  });
+}
+function completePipeline() {
+  document.querySelectorAll('.pipeline .step').forEach(el => {
+    el.classList.remove('active');
+    el.classList.add('done');
+  });
+}
+
+/* ── Demo ───────────────────────────────────────────────────── */
+async function loadDemo() {
+  setPipeline(0);
+  setLoading(true);
+
+  let step = 0;
+  const iv = setInterval(() => { step++; if(step < 4) setPipeline(step); }, 300);
+
+  try {
+    const res = await fetch('/api/demo');
+    const data = await res.json();
+    clearInterval(iv);
+    completePipeline();
+    renderClusters(data);
+    showImpactSection();
+  } catch(e) {
+    clearInterval(iv);
+    clearPipeline();
+    showError('Failed to load demo data.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ── Live search ────────────────────────────────────────────── */
+async function runSearch() {
+  const kw = document.getElementById('kw-input').value.trim();
+  if (!kw) return;
+
+  setPipeline(0);
+  setLoading(true);
+
+  let step = 0;
+  const iv = setInterval(() => {
+    step++;
+    if (step < 4) setPipeline(step);
+  }, 2000);
+
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({keywords: kw}),
+    });
+    const data = await res.json();
+    clearInterval(iv);
+
+    if (data.error) {
+      clearPipeline();
+      showError(data.error);
+      return;
+    }
+    completePipeline();
+    lastSearchKeyword = kw;
+    renderArticles(data);
+    showImpactSection();
+    loadBiohealthNews(kw);
+  } catch(e) {
+    clearInterval(iv);
+    clearPipeline();
+    showError('Network error. Check your connection.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ── Render ─────────────────────────────────────────────────── */
+function renderArticles(data) {
+  currentData = data;
+  const container = document.getElementById('results');
+  const articles = data.articles || [];
+
+  const sources = {};
+  articles.forEach(a => {
+    sources[a.source] = (sources[a.source] || 0) + 1;
+  });
+
+  document.getElementById('stats').style.display = 'flex';
+  document.getElementById('st-articles').textContent = articles.length;
+  document.getElementById('st-clusters').textContent = Object.keys(sources).length;
+  document.getElementById('st-drugs').textContent = sources['ClinicalTrials.gov'] || 0;
+  document.getElementById('st-companies').textContent = sources['FDA Label'] || 0;
+
+  if (articles.length === 0) {
+    container.innerHTML = `<div class="state-message">
+      <span class="icon">&#128269;</span>
+      <h3>No results found</h3>
+      <p>Try a different search term.</p>
+    </div>`;
+    return;
+  }
+
+  let html = `<div class="cluster-section">
+    <div class="cluster-header">
+      <span class="cluster-badge topic">Latest ${articles.length} Results</span>
+      <span class="cluster-count">Sorted by date (newest first)</span>
+    </div>
+    ${articles.map((a,i) => renderArticle(a, i)).join('')}
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function renderClusters(data) {
+  currentData = data;
+  const container = document.getElementById('results');
+
+  const sortedKeys = Object.keys(data)
+    .map(Number)
+    .sort((a,b) => {
+      if (a === -1) return 1;
+      if (b === -1) return -1;
+      return a - b;
+    });
+
+  let totalArticles = 0;
+  sortedKeys.forEach(k => {
+    totalArticles += data[String(k)].length;
+  });
+
+  document.getElementById('stats').style.display = 'flex';
+  document.getElementById('st-articles').textContent = totalArticles;
+  document.getElementById('st-clusters').textContent = sortedKeys.filter(k => k !== -1).length;
+  document.getElementById('st-drugs').textContent = '-';
+  document.getElementById('st-companies').textContent = '-';
+
+  let html = '';
+  let clusterNum = 0;
+  sortedKeys.forEach(k => {
+    const articles = data[String(k)];
+    const isNoise = k === -1;
+    if (!isNoise) clusterNum++;
+
+    const badgeClass = isNoise ? 'noise' : 'topic';
+    const badgeLabel = isNoise ? 'Unclustered' : `Topic Cluster ${clusterNum}`;
+
+    html += `<div class="cluster-section">
+      <div class="cluster-header">
+        <span class="cluster-badge ${badgeClass}">${badgeLabel}</span>
+        <span class="cluster-count">${articles.length} article${articles.length!==1?'s':''}</span>
+      </div>
+      ${articles.map((a,i) => renderArticle(a, `${k}-${i}`)).join('')}
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderArticle(a, uid) {
+  const fullText = a.full_text || '';
+  const meta = a.meta || {};
+
+  let intelHtml = '';
+  const tags = [];
+  if (meta.phase) tags.push(['Phase', meta.phase]);
+  if (meta.status) tags.push(['Status', meta.status]);
+  if (meta.sponsor) tags.push(['Sponsor', meta.sponsor]);
+  if (meta.nct_id) tags.push(['NCT ID', meta.nct_id]);
+  if (meta.application_number) tags.push(['App#', meta.application_number]);
+  if (meta.brand_names && meta.brand_names.length) tags.push(['Brand', meta.brand_names.slice(0,2).join(', ')]);
+  if (meta.generic_names && meta.generic_names.length) tags.push(['Generic', meta.generic_names[0]]);
+  if (meta.inn) tags.push(['INN', meta.inn]);
+  if (meta.therapeutic_area) tags.push(['Indication', meta.therapeutic_area.split(';')[0]]);
+  if (meta.conditions && meta.conditions.length) tags.push(['Conditions', meta.conditions.slice(0,2).join(', ')]);
+
+  if (tags.length) {
+    intelHtml = `<div class="intel-tags">${tags.map(([l,v]) =>
+      `<span class="intel-tag"><strong>${esc(l)}:</strong> ${esc(v)}</span>`
+    ).join('')}</div>`;
+  }
+
+  let summaryHtml = '';
+  if (fullText) {
+    const lines = fullText.split('\n').filter(l => l.trim());
+    summaryHtml = `<div class="exec-summary" style="white-space:pre-line;font-style:normal">${esc(lines.slice(0, 10).join('\n'))}</div>`;
+  }
+
+  const s = a.summary;
+  let oldSummaryHtml = '';
+  if (s && s.executive_summary) {
+    oldSummaryHtml = `<div class="exec-summary">${esc(s.executive_summary)}</div>`;
+    if (s.bullet_points && s.bullet_points.length) {
+      oldSummaryHtml += `<ul class="bullet-list">${s.bullet_points.map(bp =>
+        `<li>${esc(bp)}</li>`
+      ).join('')}</ul>`;
+    }
+  }
+
+  const hasDetail = intelHtml || summaryHtml || oldSummaryHtml;
+
+  return `<div class="article-card" id="card-${uid}">
+    <div class="card-main" onclick="${hasDetail ? `toggleCard('${uid}')` : ''}">
+      <div>
+        <span class="title" style="cursor:pointer">${esc(a.title)}</span>
+        <div class="meta">${esc(a.source)} &middot; ${esc(a.published_date)}</div>
+      </div>
+      ${hasDetail ? '<span class="chevron">&#9660;</span>' : ''}
+    </div>
+    ${hasDetail ? `<div class="card-detail">
+      ${intelHtml}${summaryHtml || oldSummaryHtml}
+      <a class="read-link" href="${esc(a.link)}" target="_blank" rel="noopener">
+        View original source &rarr;
+      </a>
+    </div>` : ''}
+  </div>`;
+}
+
+/* ── Helpers ─────────────────────────────────────────────────── */
+function toggleCard(uid) {
+  document.getElementById('card-' + uid).classList.toggle('open');
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('btn-search');
+  const label = document.getElementById('search-label');
+  btn.disabled = on;
+  label.innerHTML = on ? '<span class="spinner"></span> Running' : 'Search';
+}
+
+function showError(msg) {
+  document.getElementById('results').innerHTML =
+    `<div class="state-message"><span class="icon">&#9888;&#65039;</span>
+     <h3>Error</h3><p>${esc(msg)}</p></div>`;
+  document.getElementById('stats').style.display = 'none';
+}
+
+function esc(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+document.getElementById('kw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+
+/* ── Biohealth News ──────────────────────────────────────────── */
+const KR_SOURCES = ['이데일리', '이투데이', '데일리팜', '메디파나', '약업신문'];
+
+async function loadBiohealthNews(keyword) {
+  const container = document.getElementById('news-container');
+  const btnLabel = document.getElementById('news-btn-label');
+  const kw = (keyword !== undefined && keyword !== null) ? String(keyword).trim() : lastSearchKeyword;
+
+  btnLabel.innerHTML = '<span class="spinner" style="border-color:var(--primary);border-top-color:transparent;width:14px;height:14px"></span>';
+
+  try {
+    let url = '/api/biohealth-news?count=' + (kw ? 15 : 10);
+    if (kw) {
+      url += '&keywords=' + encodeURIComponent(kw);
+    }
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      container.innerHTML = `<div class="state-message">
+        <span class="icon">⚠️</span>
+        <h3>Error</h3>
+        <p>${esc(data.error)}</p>
+      </div>`;
+      return;
+    }
+
+    const articles = data.articles || [];
+    const fallback = data.fallback_to_unfiltered;
+    const overallSummary = data.overall_summary || '';
+    if (articles.length === 0) {
+      currentNewsArticles = [];
+      const hint = kw
+        ? `No news found matching "${esc(kw)}". Try a different search term or click Refresh without searching first.`
+        : 'Could not fetch news from sources. Please try again later.';
+      container.innerHTML = `<div class="state-message">
+        <span class="icon">📭</span>
+        <h3>No news available</h3>
+        <p>${hint}</p>
+      </div>`;
+      return;
+    }
+
+    let filterNote = '';
+    if (kw) {
+      filterNote = fallback
+        ? `<p class="news-filter-note">No articles matched <strong>${esc(kw)}</strong>.</p>`
+        : `<p class="news-filter-note">Showing ${articles.length} article(s) related to <strong>${esc(kw)}</strong></p>`;
+    }
+    currentNewsArticles = articles;
+    const summaryBlock = overallSummary
+      ? `<div class="news-summary-box"><h4>Summary</h4><pre class="news-summary-text">${esc(overallSummary)}</pre></div>`
+      : '';
+    container.innerHTML = filterNote + summaryBlock + `<div class="news-grid">
+      ${articles.map(renderNewsCard).join('')}
+    </div>`;
+
+  } catch(e) {
+    container.innerHTML = `<div class="state-message">
+      <span class="icon">⚠️</span>
+      <h3>Network Error</h3>
+      <p>Failed to load news. Check your connection.</p>
+    </div>`;
+  } finally {
+    btnLabel.textContent = 'Refresh';
+  }
+}
+
+function renderNewsCard(article) {
+  const isKorean = KR_SOURCES.includes(article.source);
+  const langClass = isKorean ? 'kr' : 'en';
+  const snippet = article.summary || article.snippet || '';
+
+  return `<div class="news-card">
+    <div class="news-source ${langClass}">${esc(article.source)}</div>
+    <div class="news-title">
+      <a href="${esc(article.link)}" target="_blank" rel="noopener">${esc(article.title)}</a>
+    </div>
+    <div class="news-date">${esc(article.published_date)}</div>
+    ${snippet ? `<div class="news-snippet">${esc(snippet)}</div>` : ''}
+  </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadBiohealthNews();
+});
+
+/* ── Pipeline Impact Analysis ────────────────────────────────── */
+function showImpactSection() {
+  document.getElementById('impact-section').style.display = 'block';
+  document.getElementById('impact-container').innerHTML = `
+    <div class="state-message">
+      <span class="icon">📋</span>
+      <h3>Ready to analyze</h3>
+      <p>Click <strong>Analyze Impact</strong> to see how search results affect the clinical pipeline.</p>
+    </div>`;
+}
+
+function getArticlesForImpact() {
+  const articles = [];
+  if (!currentData) return articles;
+  if (Array.isArray(currentData.articles)) {
+    return currentData.articles;
+  }
+  if (typeof currentData === 'object') {
+    for (const k of Object.keys(currentData)) {
+      const arr = currentData[k];
+      if (Array.isArray(arr)) articles.push(...arr);
+    }
+  }
+  return articles;
+}
+
+async function runPipelineImpact() {
+  const articles = getArticlesForImpact();
+  const news = currentNewsArticles || [];
+  if (!articles.length && !news.length) {
+    alert('No articles to analyze. Run a search or load demo first.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-analyze');
+  const label = document.getElementById('analyze-label');
+  btn.disabled = true;
+  label.innerHTML = '<span class="spinner" style="border-color:var(--primary);border-top-color:transparent;width:14px;height:14px"></span>';
+
+  try {
+    const res = await fetch('/api/pipeline-impact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({articles, news_articles: news}),
+    });
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById('impact-container').innerHTML = `
+        <div class="state-message">
+          <span class="icon">⚠️</span>
+          <h3>Error</h3>
+          <p>${esc(data.error)}</p>
+        </div>`;
+      return;
+    }
+    renderImpactResults(data);
+  } catch(e) {
+    document.getElementById('impact-container').innerHTML = `
+      <div class="state-message">
+        <span class="icon">⚠️</span>
+        <h3>Network Error</h3>
+        <p>Failed to run analysis.</p>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    label.textContent = 'Analyze Impact';
+  }
+}
+
+function renderImpactResults(data) {
+  const pipeline = data.pipeline || {};
+  const affected = data.affected_assets || [];
+  const competitors = data.competitor_mentions || [];
+  const recs = data.recommendations || [];
+  const summary = data.summary || '';
+
+  let html = `<div class="impact-card">
+    <h4>Summary</h4>
+    <p style="margin:0;font-size:.9rem">${esc(summary)}</p>
+    <p style="margin:.5rem 0 0;font-size:.78rem;color:var(--text-secondary)">
+      Pipeline: ${esc(pipeline.company)} (as of ${esc(pipeline.as_of || '')}) · ${data.articles_analyzed || 0} articles analyzed
+    </p>
+  </div>`;
+
+  if (affected.length) {
+    html += `<div class="impact-card">
+      <h4>Affected Pipeline Assets <span class="impact-badge high">${affected.length}</span></h4>
+      <ul class="impact-list">${affected.map(a => `
+        <li>
+          <span class="impact-badge ${a.severity || 'medium'}">${esc(a.severity || '')}</span>
+          <div>
+            <strong>${esc(a.asset.drug_name || a.asset.drug_code || a.asset.id)}</strong>
+            ${a.asset.phase ? `<span style="color:var(--text-secondary)"> · ${esc(a.asset.phase)}</span>` : ''}
+            <br><span style="font-size:.8rem;color:var(--text-secondary)">${esc(a.reason)}</span>
+          </div>
+        </li>`).join('')}</ul>
+    </div>`;
+  }
+
+  if (competitors.length) {
+    const unique = [...new Set(competitors.map(c => c.competitor))];
+    html += `<div class="impact-card">
+      <h4>Competitor Mentions</h4>
+      <p style="margin:0;font-size:.9rem">${esc(unique.join(', '))}</p>
+    </div>`;
+  }
+
+  if (recs.length) {
+    html += `<div class="impact-card">
+      <h4>Recommendations</h4>
+      ${recs.map(r => `
+        <div style="margin-bottom:1rem">
+          <strong style="font-size:.9rem">${esc(r.title)}</strong>
+          <span class="impact-badge ${r.priority || 'medium'}">${esc(r.priority || '')}</span>
+          <p style="margin:.35rem 0 .5rem;font-size:.85rem">${esc(r.description)}</p>
+          ${r.actions && r.actions.length ? `
+            <ul class="rec-actions">${r.actions.map(x => `<li>• ${esc(x)}</li>`).join('')}</ul>
+          ` : ''}
+        </div>`).join('')}
+    </div>`;
+  }
+
+  if (!affected.length && !competitors.length && recs.length <= 1) {
+    html += `<div class="impact-card">
+      <p style="margin:0;font-size:.9rem;color:var(--text-secondary)">${esc(recs[0]?.description || 'No direct overlap with pipeline detected.')}</p>
+    </div>`;
+  }
+
+  document.getElementById('impact-container').innerHTML = html;
+}
+</script>
+</body>
+</html>
